@@ -23,7 +23,7 @@ const Predict = () => {
     setError(null);
     
     try {
-      // Now using the real API implementation
+      // Using the real API implementation
       const data = await mockUploadImage(file);
       setResults(data);
       
@@ -60,9 +60,9 @@ const Predict = () => {
             <Info className="h-4 w-4" />
             <AlertTitle>How it works</AlertTitle>
             <AlertDescription>
-              1. Set your Gemini API key above to enable AI-powered recommendations.
-              2. Upload a cattle image to detect the breed using your local YOLOv8 model.
-              3. View AI-generated breeding matches, nutrition plans, and reproductive insights.
+              1. Upload a cattle image to detect the breed using your local YOLOv8 model.
+              2. View AI-generated breeding matches, nutrition plans, and reproductive insights.
+              3. Chat with our AI assistant for more detailed cattle management advice.
             </AlertDescription>
           </Alert>
         </div>
@@ -84,15 +84,7 @@ const Predict = () => {
         {results && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
             <BreedResults results={results} />
-            {results.best_breeding_matches?.length > 0 ? (
-              <BreedingRecommendations recommendations={results} />
-            ) : (
-              <div className="flex items-center justify-center min-h-[200px]">
-                <p className="text-muted-foreground">
-                  Set your Gemini API key to get breeding recommendations
-                </p>
-              </div>
-            )}
+            <BreedingRecommendations recommendations={results} />
             <NutritionPlan nutrition={results} />
             <ReproductiveBenefits benefits={results} />
           </div>

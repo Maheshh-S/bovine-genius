@@ -3,6 +3,9 @@ import { toast } from "sonner";
 // Change to your backend URL (default Flask port is 5000)
 const API_URL = "http://localhost:5000";
 
+// Your fixed Gemini API key - replace with your actual key
+const GEMINI_API_KEY = "YOUR_ACTUAL_GEMINI_API_KEY_HERE";
+
 export interface BreedResult {
   breed: string;
   confidence: number;
@@ -38,15 +41,10 @@ export type PredictionResults =
   NutritionRecommendation & 
   ReproductiveBenefits;
 
-// Gemini API key state
-let geminiApiKey: string | null = null;
-
-export const setGeminiApiKey = (key: string) => {
-  geminiApiKey = key;
-};
+// Removed the dynamic key setting logic since we're using a fixed key
 
 export const getGeminiApiKey = () => {
-  return geminiApiKey;
+  return GEMINI_API_KEY;
 };
 
 export async function uploadImage(file: File): Promise<BreedResult> {
@@ -77,8 +75,6 @@ export async function uploadImage(file: File): Promise<BreedResult> {
 }
 
 export async function getBreedingRecommendations(breedData: BreedResult): Promise<BreedingRecommendations> {
-  if (!geminiApiKey) throw new Error("Gemini API key is not set");
-
   try {
     const prompt = `You are a professional cattle expert. Based on the following cattle breed information, provide the top 5 best breeding matches with detailed expected benefits formatted as JSON.
     
@@ -101,7 +97,7 @@ export async function getBreedingRecommendations(breedData: BreedResult): Promis
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': geminiApiKey,
+        'x-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
@@ -135,8 +131,6 @@ export async function getBreedingRecommendations(breedData: BreedResult): Promis
 }
 
 export async function getNutritionPlan(breedData: BreedResult): Promise<NutritionRecommendation> {
-  if (!geminiApiKey) throw new Error("Gemini API key is not set");
-
   try {
     // Calculate approximate weight if not provided
     const estimatedWeight = breedData.weight_kg || 
@@ -161,7 +155,7 @@ export async function getNutritionPlan(breedData: BreedResult): Promise<Nutritio
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': geminiApiKey,
+        'x-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
@@ -195,8 +189,6 @@ export async function getNutritionPlan(breedData: BreedResult): Promise<Nutritio
 }
 
 export async function getReproductiveBenefits(breedData: BreedResult): Promise<ReproductiveBenefits> {
-  if (!geminiApiKey) throw new Error("Gemini API key is not set");
-
   try {
     const prompt = `You are a cattle reproductive expert. Based on the following cattle breed information, provide detailed reproductive benefits information formatted as JSON.
     
@@ -213,7 +205,7 @@ export async function getReproductiveBenefits(breedData: BreedResult): Promise<R
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': geminiApiKey,
+        'x-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
@@ -247,8 +239,6 @@ export async function getReproductiveBenefits(breedData: BreedResult): Promise<R
 }
 
 export async function sendChatMessage(message: string): Promise<string> {
-  if (!geminiApiKey) throw new Error("Gemini API key is not set");
-
   try {
     const prompt = `You are CattleAssist, an AI assistant specializing in cattle breeding, nutrition, and management. 
     Only answer questions related to cattle, farming, or animal husbandry. 
@@ -261,7 +251,7 @@ export async function sendChatMessage(message: string): Promise<string> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': geminiApiKey,
+        'x-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
@@ -295,7 +285,7 @@ export async function mockUploadImage(file: File): Promise<PredictionResults> {
     const breedResult = await uploadImage(file);
 
     // If API key is set, use Gemini to get real recommendations
-    if (geminiApiKey) {
+    if (GEMINI_API_KEY) {
       try {
         const breedingRecs = await getBreedingRecommendations(breedResult);
         const nutritionRecs = await getNutritionPlan(breedResult);
@@ -339,21 +329,6 @@ export async function mockUploadImage(file: File): Promise<PredictionResults> {
 }
 
 export async function mockSendChatMessage(message: string): Promise<string> {
-  if (geminiApiKey) {
-    return sendChatMessage(message);
-  }
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      if (message.toLowerCase().includes("feed") || message.toLowerCase().includes("nutrition")) {
-        resolve("For Jersey cows, a balanced diet should include high-quality alfalfa hay, corn silage, and a protein supplement like soybean meal. Adult cows typically need 2-3% of their body weight in dry matter daily.");
-      } else if (message.toLowerCase().includes("breed") || message.toLowerCase().includes("breeding")) {
-        resolve("Jersey cows are excellent for crossbreeding with Holstein, Brown Swiss, or Gir breeds to improve milk production, fat content, or heat tolerance. The first breeding should occur when the heifer reaches about 15 months of age or 800 pounds.");
-      } else if (message.toLowerCase().includes("disease") || message.toLowerCase().includes("health")) {
-        resolve("Common diseases in Jersey cows include mastitis, milk fever, and ketosis. Regular vaccinations, proper nutrition, and good management practices are essential for prevention. Ensure clean housing and proper milking procedures.");
-      } else {
-        resolve("I can help with questions about cattle breeding, nutrition, health, and management. What specific information are you looking for about your cattle?");
-      }
-    }, 1000);
-  });
+  // Always use the real Gemini API now
+  return sendChatMessage(message);
 }
