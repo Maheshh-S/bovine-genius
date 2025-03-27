@@ -11,19 +11,30 @@ import GeminiKeyInput from '@/components/GeminiKeyInput';
 import { mockUploadImage, PredictionResults } from '@/services/api';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Info } from 'lucide-react';
+import { toast } from "sonner";
 
 const Predict = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [results, setResults] = useState<PredictionResults | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const handleUpload = async (file: File) => {
     setIsUploading(true);
+    setError(null);
+    
     try {
-      // Use mockUploadImage for now, later replace with the real API
+      // Now using the real API implementation
       const data = await mockUploadImage(file);
       setResults(data);
+      
+      // Show a success message
+      if (data.message) {
+        toast.success(data.message);
+      }
     } catch (error) {
       console.error('Error uploading image:', error);
+      setError('Failed to analyze the image. Please try again or use a different image.');
+      toast.error('Failed to analyze the image');
     } finally {
       setIsUploading(false);
     }
@@ -50,11 +61,21 @@ const Predict = () => {
             <AlertTitle>How it works</AlertTitle>
             <AlertDescription>
               1. Set your Gemini API key above to enable AI-powered recommendations.
-              2. Upload a cattle image to detect the breed and get personalized recommendations.
+              2. Upload a cattle image to detect the breed using your local YOLOv8 model.
               3. View AI-generated breeding matches, nutrition plans, and reproductive insights.
             </AlertDescription>
           </Alert>
         </div>
+        
+        {error && (
+          <div className="max-w-3xl mx-auto mb-6">
+            <Alert variant="destructive">
+              <AlertDescription>
+                {error}
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
         
         <div className="max-w-3xl mx-auto mb-12">
           <UploadImage onUpload={handleUpload} isUploading={isUploading} />
@@ -63,7 +84,15 @@ const Predict = () => {
         {results && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
             <BreedResults results={results} />
-            <BreedingRecommendations recommendations={results} />
+            {results.best_breeding_matches?.length > 0 ? (
+              <BreedingRecommendations recommendations={results} />
+            ) : (
+              <div className="flex items-center justify-center min-h-[200px]">
+                <p className="text-muted-foreground">
+                  Set your Gemini API key to get breeding recommendations
+                </p>
+              </div>
+            )}
             <NutritionPlan nutrition={results} />
             <ReproductiveBenefits benefits={results} />
           </div>

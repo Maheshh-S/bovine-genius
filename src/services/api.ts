@@ -1,7 +1,7 @@
-
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:8000"; // Change this to your backend URL
+// Change to your backend URL (default Flask port is 5000)
+const API_URL = "http://localhost:5000";
 
 export interface BreedResult {
   breed: string;
@@ -52,7 +52,8 @@ export const getGeminiApiKey = () => {
 export async function uploadImage(file: File): Promise<BreedResult> {
   try {
     const formData = new FormData();
-    formData.append("file", file);
+    // The Flask endpoint expects 'image' as the field name for the file
+    formData.append("image", file);
     
     const response = await fetch(`${API_URL}/predict`, {
       method: "POST",
@@ -61,10 +62,13 @@ export async function uploadImage(file: File): Promise<BreedResult> {
     
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || "Failed to process image");
+      throw new Error(errorData.error || "Failed to process image");
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log("Backend response:", data);
+    
+    return data;
   } catch (error) {
     console.error("Error uploading image:", error);
     toast.error("Failed to process image. Please try again.");
@@ -286,102 +290,52 @@ export async function sendChatMessage(message: string): Promise<string> {
 
 // This is a temporary function until the real backend is connected
 export async function mockUploadImage(file: File): Promise<PredictionResults> {
-  return new Promise((resolve) => {
-    setTimeout(async () => {
-      // Simulated breed detection result
-      const breedResult: BreedResult = {
-        breed: "Jersey",
-        confidence: 0.92,
-        height_cm: 219,
-        width_cm: 226,
-        message: "✅ Prediction successful! Ensure a clear image for better accuracy."
-      };
+  try {
+    // Instead of using mock data, we'll now call the real API
+    const breedResult = await uploadImage(file);
 
-      // Calculate weight using the dimensions
-      breedResult.weight_kg = Math.round((breedResult.height_cm * breedResult.width_cm) / 80);
-
+    // If API key is set, use Gemini to get real recommendations
+    if (geminiApiKey) {
       try {
-        // If API key is set, use Gemini to get real recommendations
-        if (geminiApiKey) {
-          const breedingRecs = await getBreedingRecommendations(breedResult);
-          const nutritionRecs = await getNutritionPlan(breedResult);
-          const reproductiveBenefits = await getReproductiveBenefits(breedResult);
+        const breedingRecs = await getBreedingRecommendations(breedResult);
+        const nutritionRecs = await getNutritionPlan(breedResult);
+        const reproductiveBenefits = await getReproductiveBenefits(breedResult);
 
-          resolve({
-            ...breedResult,
-            ...breedingRecs,
-            ...nutritionRecs,
-            ...reproductiveBenefits
-          });
-        } else {
-          // If no API key, fall back to mock data
-          resolve({
-            ...breedResult,
-            best_breeding_matches: [
-              {
-                breed: "Holstein",
-                expected_benefits: "High milk production up to 35L/day, strong immune system."
-              },
-              {
-                breed: "Brown Swiss",
-                expected_benefits: "Rich milk fat content (4.2%), excellent fertility, high disease resistance."
-              },
-              {
-                breed: "Gir",
-                expected_benefits: "Hardy breed, thrives in hot climates, long lifespan, good milk production."
-              },
-              {
-                breed: "Sahiwal",
-                expected_benefits: "Best desi breed, disease-resistant, high fertility, and strong calves."
-              },
-              {
-                breed: "Montbéliarde",
-                expected_benefits: "Balanced breed with both high milk and strong muscular growth."
-              }
-            ],
-            nutrition_recommendation: {
-              protein_source: ["Alfalfa", "Soybean Meal", "Corn Silage"],
-              feeding_plan: "Provide 2 kg of soybean meal daily for protein enrichment and 5 kg of alfalfa for fiber."
-            },
-            reproductive_benefits: "Crossing Jersey with Holstein produces calves with higher milk yield and strong disease resistance."
-          });
-        }
+        return {
+          ...breedResult,
+          ...breedingRecs,
+          ...nutritionRecs,
+          ...reproductiveBenefits
+        };
       } catch (error) {
         console.error("Error generating AI recommendations:", error);
-        // Fall back to mock data if there's an error
-        resolve({
+        // If Gemini API fails, fall back to basic response with just breed data
+        return {
           ...breedResult,
-          best_breeding_matches: [
-            {
-              breed: "Holstein",
-              expected_benefits: "High milk production up to 35L/day, strong immune system."
-            },
-            {
-              breed: "Brown Swiss",
-              expected_benefits: "Rich milk fat content (4.2%), excellent fertility, high disease resistance."
-            },
-            {
-              breed: "Gir",
-              expected_benefits: "Hardy breed, thrives in hot climates, long lifespan, good milk production."
-            },
-            {
-              breed: "Sahiwal",
-              expected_benefits: "Best desi breed, disease-resistant, high fertility, and strong calves."
-            },
-            {
-              breed: "Montbéliarde",
-              expected_benefits: "Balanced breed with both high milk and strong muscular growth."
-            }
-          ],
+          best_breeding_matches: [],
           nutrition_recommendation: {
-            protein_source: ["Alfalfa", "Soybean Meal", "Corn Silage"],
-            feeding_plan: "Provide 2 kg of soybean meal daily for protein enrichment and 5 kg of alfalfa for fiber."
+            protein_source: [],
+            feeding_plan: "Please set a valid Gemini API key to get nutrition recommendations."
           },
-          reproductive_benefits: "Crossing Jersey with Holstein produces calves with higher milk yield and strong disease resistance."
-        });
+          reproductive_benefits: "Please set a valid Gemini API key to get reproductive benefits."
+        };
       }
-    }, 2000);
-  });
+    } else {
+      // If no API key, return just the breed data with placeholders
+      return {
+        ...breedResult,
+        best_breeding_matches: [],
+        nutrition_recommendation: {
+          protein_source: [],
+          feeding_plan: "Please set a Gemini API key to get nutrition recommendations."
+        },
+        reproductive_benefits: "Please set a Gemini API key to get reproductive benefits."
+      };
+    }
+  } catch (error) {
+    console.error("Error in mockUploadImage:", error);
+    throw error;
+  }
 }
 
 export async function mockSendChatMessage(message: string): Promise<string> {

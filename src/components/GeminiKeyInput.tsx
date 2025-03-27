@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { setGeminiApiKey, getGeminiApiKey } from '@/services/api';
 import { toast } from "sonner";
-import { KeyRound } from 'lucide-react';
+import { KeyRound, AlertTriangle } from 'lucide-react';
 
 const GeminiKeyInput: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
@@ -76,7 +76,13 @@ const GeminiKeyInput: React.FC = () => {
               {isKeySet ? (
                 <span className="text-green-500">✓ Gemini API key is set and ready to use</span>
               ) : (
-                <span>Get your API key from <a href="https://ai.google.dev/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google AI Studio</a></span>
+                <div className="flex items-center gap-1 text-amber-500">
+                  <AlertTriangle className="h-3 w-3" />
+                  <span>
+                    Breed detection works without a key, but you need a key for AI recommendations.
+                    Get it from <a href="https://ai.google.dev/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google AI Studio</a>
+                  </span>
+                </div>
               )}
             </div>
           </div>
