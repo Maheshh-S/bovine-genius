@@ -3,14 +3,17 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BreedResult } from '@/services/api';
-import { BadgeCheck, Ruler, Scale, Trophy, Monitor } from 'lucide-react';
+import { BadgeCheck, Ruler, Scale, Monitor } from 'lucide-react';
 
 interface BreedResultsProps {
   results: BreedResult;
 }
 
 const BreedResults: React.FC<BreedResultsProps> = ({ results }) => {
-  const { breed, confidence, height_cm, width_cm, weight_kg } = results;
+  const { breed, confidence, height_cm, width_cm, message } = results;
+  
+  // Calculate weight if not provided using the approximate formula
+  const weight_kg = results.weight_kg || Math.round((height_cm * width_cm) / 80);
   
   // Format the confidence as a percentage
   const confidencePercentage = Math.round(confidence * 100);
@@ -36,6 +39,12 @@ const BreedResults: React.FC<BreedResultsProps> = ({ results }) => {
             </div>
             <Progress value={confidencePercentage} className="h-2" />
           </div>
+          
+          {message && (
+            <div className="text-sm text-muted-foreground mt-2">
+              {message}
+            </div>
+          )}
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

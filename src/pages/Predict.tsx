@@ -7,7 +7,10 @@ import BreedingRecommendations from '@/components/BreedingRecommendations';
 import NutritionPlan from '@/components/NutritionPlan';
 import ReproductiveBenefits from '@/components/ReproductiveBenefits';
 import ChatSupport from '@/components/ChatSupport';
+import GeminiKeyInput from '@/components/GeminiKeyInput';
 import { mockUploadImage, PredictionResults } from '@/services/api';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Info } from 'lucide-react';
 
 const Predict = () => {
   const [isUploading, setIsUploading] = useState(false);
@@ -35,6 +38,22 @@ const Predict = () => {
             Upload an image of cattle to get breed identification, breeding recommendations, 
             and nutrition guidance powered by AI.
           </p>
+        </div>
+        
+        <div className="max-w-3xl mx-auto mb-6">
+          <GeminiKeyInput />
+        </div>
+        
+        <div className="max-w-3xl mx-auto mb-6">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>How it works</AlertTitle>
+            <AlertDescription>
+              1. Set your Gemini API key above to enable AI-powered recommendations.
+              2. Upload a cattle image to detect the breed and get personalized recommendations.
+              3. View AI-generated breeding matches, nutrition plans, and reproductive insights.
+            </AlertDescription>
+          </Alert>
         </div>
         
         <div className="max-w-3xl mx-auto mb-12">
